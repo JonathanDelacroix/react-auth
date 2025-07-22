@@ -19,13 +19,13 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
     try {
       const response = await fetch("https://offers-api.digistos.com/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
         },
         body: JSON.stringify({
           email: formData.email,
@@ -36,18 +36,16 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
-          setError("Identifiants invalides. Veuillez réessayer.");
-        } else {
-          setError("Une erreur est survenue. Veuillez réessayer.");
-        }
-        return;
+        throw new Error(data.message || "Une erreur est survenue.");
       }
 
-      localStorage.setItem("token", data.token);
       navigate("/offres/professionnelles");
     } catch (err) {
-      setError("Erreur de connexion au serveur.");
+      if (err.message.includes("401")) {
+        setError("Identifiants invalides. Veuillez réessayer.");
+      } else {
+        setError(err.message || "Erreur de connexion au serveur.");
+      }
     }
   };
 
