@@ -32,17 +32,17 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
 
-
+      const data = await response.json();
       if (response.ok) {
         console.log("Form submitted:", formData);
         navigate("/connexion");
       } else {
-        throw new Error("Une erreur est survenue.");
+        throw new Error(data.message || "Erreur lors de l'inscription");
       }
 
     } catch (err) {
       console.error("Erreur:", err);
-      setAlert({ type: "danger", message: "Erreur. Veuillez réessayer." });
+      setAlert({ type: "danger", message: "Une erreur est survenue lors de l'inscription" });
     }
   };
 
