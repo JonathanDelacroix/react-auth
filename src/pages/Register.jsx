@@ -32,20 +32,14 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
 
       if (response.ok) {
-        setAlert({ type: "success", message: "Inscription réussie" });
         console.log("Form submitted:", formData);
-
-        setTimeout(() => {
-          navigate("/connexion");
-        }, 1500);
+        navigate("/connexion");
       } else {
-        const errorMessage = data.message || "Une erreur est survenue.";
-        setAlert({ type: "warning", message: errorMessage });
-        console.log("Form submitted:", formData);
+        throw new Error("Une erreur est survenue.");
       }
+
     } catch (err) {
       console.error("Erreur:", err);
       setAlert({ type: "danger", message: "Erreur. Veuillez réessayer." });
