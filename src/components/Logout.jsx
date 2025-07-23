@@ -6,10 +6,9 @@ const Logout = () => {
 
   useEffect(() => {
     const handleLogout = async () => {
-      const auth = JSON.parse(localStorage.getItem("auth") || "null");
-      const token = auth?.token;
-
       try {
+        const auth = JSON.parse(localStorage.getItem("auth") || "null");
+        const token = auth?.token;
         if (token) {
           await fetch('https://offers-api.digistos.com/api/auth/logout', {
             method: 'POST',
@@ -21,10 +20,11 @@ const Logout = () => {
         }
       } catch (error) {
         console.warn("Erreur API de déconnexion (non bloquante):", error);
+      } finally {
+        localStorage.removeItem("auth");
+        navigate("/");
       }
 
-      localStorage.removeItem("auth");
-      navigate("/");
     };
 
     handleLogout();
