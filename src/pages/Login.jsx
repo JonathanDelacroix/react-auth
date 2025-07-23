@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, Button, Container, Card, Row, Col } from "react-bootstrap";
+import { Form, Button, Container, Card, Row, Col, Alert } from "react-bootstrap";
 import { useNavigate } from 'react-router';
 
 const LoginPage = () => {
@@ -33,18 +33,20 @@ const LoginPage = () => {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || "Une erreur est survenue.");
+        const datas = await response.json();
+        const customError = new Error(datas.error || "An error occured.");
+        customError.status = response.status;
+        throw customError;
       }
 
       navigate("/offres/professionnelles");
-    } catch (err) {
-      if (err.message.includes("401")) {
-        setError("Identifiants invalides. Veuillez réessayer.");
+    } catch (error) {
+      console.error(`Error: ${error.message} (${error.status})`);
+      if (error.status === 401) {
+        setError("Identifiants invalides.");
       } else {
-        setError(err.message || "Erreur de connexion au serveur.");
+        setError("Une erreur est survenue lors de la connexion.");
       }
     }
   };
@@ -55,13 +57,7 @@ const LoginPage = () => {
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card className="p-4 shadow-lg">
             <h1 className="text-center mb-4">Se connecter</h1>
-
-            {error && (
-              <div className="alert alert-danger">
-                {error}
-              </div>
-            )}
-
+            {error && <Alert variant="danger">{error}</Alert>}
             <Form onSubmit={handleSubmit}>
               <Form.Group className="mb-3" controlId="loginEmail">
                 <Form.Label>Email</Form.Label>
