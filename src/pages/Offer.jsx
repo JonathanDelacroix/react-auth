@@ -8,21 +8,32 @@ const Offer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const getToken = () => {
+    try {
+      const auth = JSON.parse(localStorage.getItem("auth"));
+      return auth?.token || null;
+    } catch (error) {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const fetchOffer = async () => {
+      const token = getToken();
+
       try {
         const response = await fetch(
           `https://offers-api.digistos.com/api/offers/${id}`,
           {
             headers: {
               Accept: "application/json",
-              // Add Authorization token
+              Authorization: `Bearer ${token}`,
             },
           }
         );
 
         const { data: offers, message } = await response.json();
-        
+
         if (!response.ok) {
           throw { status: response.status, message: message };
         }

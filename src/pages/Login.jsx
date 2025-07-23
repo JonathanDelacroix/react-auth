@@ -39,6 +39,11 @@ const LoginPage = () => {
         customError.status = response.status;
         throw customError;
       }
+      const data = await response.json();
+      localStorage.setItem("auth", JSON.stringify({
+        token: data.access_token,
+        expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString()
+      }));
 
       navigate("/offres/professionnelles");
     } catch (error) {
