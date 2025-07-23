@@ -33,13 +33,14 @@ const LoginPage = () => {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const datas = await response.json();
-        const customError = new Error(datas.error || "An error occured.");
+        const customError = new Error(data.error || "An error occured.");
         customError.status = response.status;
         throw customError;
       }
-      const data = await response.json();
+
       localStorage.setItem("auth", JSON.stringify({
         token: data.access_token,
         expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString()
