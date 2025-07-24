@@ -1,45 +1,64 @@
 import { useState } from "react";
-import { Form, Button, Container, Card, Row, Col, Alert } from "react-bootstrap";
-import { useNavigate } from 'react-router';
+import {
+  Form,
+  Button,
+  Container,
+  Card,
+  Row,
+  Col,
+  Alert,
+} from "react-bootstrap";
+import { useNavigate } from "react-router";
+import { loginSuccess } from "../store/authSlice";
+import { useDispatch } from "react-redux";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+  const dispatch = useDispatch();
+  const [error, setError] = useState(null);
 
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError(null);
     try {
-      const response = await fetch("https://offers-api.digistos.com/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const response = await fetch(
+        "https://offers-api.digistos.com/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
 
       if (!response.ok) {
-        const datas = await response.json();
-        const customError = new Error(datas.error || "An error occured.");
-        customError.status = response.status;
-        throw customError;
+        const errorCustom = new Error(data.error || "An error occured");
+        errorCustom.status = response.status;
+        throw errorCustom;
       }
-
+      console.log("Connexion réussie:", data);
+      dispatch(
+        loginSuccess({
+          token: data.access_token,
+          expiresAt: new Date(
+            Date.now() + data.expires_in * 1000
+          ).toISOString(),
+        })
+      );
       navigate("/offres/professionnelles");
     } catch (error) {
       console.error(`Error: ${error.message} (${error.status})`);
