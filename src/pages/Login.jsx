@@ -1,49 +1,65 @@
 import { useState } from "react";
-import { Form, Button, Container, Card, Row, Col, Alert } from "react-bootstrap";
-import { useNavigate } from 'react-router';
+import {
+  Form,
+  Button,
+  Container,
+  Card,
+  Row,
+  Col,
+  Alert,
+} from "react-bootstrap";
+import { useNavigate } from "react-router";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
-
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [error, setError] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError(null);
     try {
-      const response = await fetch("https://offers-api.digistos.com/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const response = await fetch(
+        "https://offers-api.digistos.com/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(formData),
+          credentials: "include",
+        }
+      );
 
+      const data = await response.json();
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({
+          expiresAt: new Date(
+            Date.now() + data.expires_in * 1000
+          ).toISOString(),
+        })
+      );
       if (!response.ok) {
-        const datas = await response.json();
-        const customError = new Error(datas.error || "An error occured.");
-        customError.status = response.status;
-        throw customError;
+        const errorCustom = new Error(data.error || "An error occured");
+        errorCustom.status = response.status;
+        throw errorCustom;
       }
+      console.log("Connexion réussie:", data);
 
       navigate("/offres/professionnelles");
     } catch (error) {
-      console.error(`Error: ${error.message} (${error.status})`);
-      if (error.status === 401) {
+      console.error(`${error.message} and ${error.status}`);
+      if (error.status == 401) {
         setError("Identifiants invalides.");
       } else {
         setError("Une erreur est survenue lors de la connexion.");
@@ -56,8 +72,12 @@ const LoginPage = () => {
       <Row className="w-100 justify-content-center">
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card className="p-4 shadow-lg">
+            {error && (
+              <Alert variant="danger" className="mb-3">
+                {error}
+              </Alert>
+            )}
             <h1 className="text-center mb-4">Se connecter</h1>
-            {error && <Alert variant="danger">{error}</Alert>}
             <Form onSubmit={handleSubmit}>
               <Form.Group className="mb-3" controlId="loginEmail">
                 <Form.Label>Email</Form.Label>
